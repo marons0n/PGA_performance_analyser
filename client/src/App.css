@@ -15,7 +15,6 @@ body {
 #root {
   height: 100%;
   width: 100%;
-  /* Remove default padding/margins that might interfere with full height */
   padding: 0;
   margin: 0;
   max-width: none;
@@ -49,7 +48,6 @@ h1 {
   color: white;
   border-radius: 40px 40px 0 0;
   overflow: hidden;
-  /* Ensure wrapper doesn't scroll */
 }
 
 #content {
@@ -62,7 +60,6 @@ h1 {
   background-color: white;
   border-radius: 40px 40px 0 0;
   overflow: hidden;
-  /* Ensure content container doesn't scroll */
 }
 
 .menu-title {
@@ -141,7 +138,7 @@ h1 {
   padding: 20px;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
@@ -195,10 +192,8 @@ h1 {
   flex: 0 1 auto;
   overflow-y: auto;
   border: 1px solid #000;
-  /* Outer border */
   display: flex;
   flex-direction: column;
-  /* Hide scrollbar */
   -ms-overflow-style: none;
   scrollbar-width: none;
   margin-top: 30px;
@@ -211,12 +206,10 @@ h1 {
 .result-item {
   display: flex;
   align-items: stretch;
-  /* Stretch to fill height for borders */
   border-bottom: 1px solid #000;
   cursor: pointer;
   background-color: white;
   padding: 0;
-  /* Remove padding from container to let children handle it */
 }
 
 .result-item:last-child {
@@ -254,9 +247,10 @@ h1 {
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   gap: 40px;
   width: 100%;
-  max-width: 600px;
+  max-width: none;
 }
 
 .player-image-placeholder {
@@ -267,6 +261,7 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-left: 40px;
 }
 
 .player-icon-svg {
@@ -278,7 +273,7 @@ h1 {
 .player-info {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
 }
 
 .player-first-name {
@@ -301,4 +296,59 @@ h1 {
 .details-card {
   text-align: center;
   color: #666;
+}
+
+#title {
+  font-family: 'Cinzel', serif;
+  font-size: 50px;
+  margin-top: 7%;
+}
+
+/* Auth Buttons */
+.auth-primary-btn {
+  background-color: #e4dab5 !important;
+  color: rgb(3, 75, 0) !important;
+  font-family: 'Cinzel', serif !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  padding: 12px 0 !important;
+  margin-top: 20px !important;
+  border-radius: 5px !important;
+  text-transform: uppercase !important;
+  transition: all 0.3s ease !important;
+  width: 100%;
+}
+
+.auth-primary-btn:hover {
+  background-color: #fff !important;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3) !important;
+}
+
+.auth-primary-btn:disabled {
+  background-color: #555 !important;
+  color: #888 !important;
+}
+
+.auth-secondary-btn {
+  color: #e4dab5 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  text-transform: none !important;
+  margin-top: 10px !important;
+  width: 100%;
+}
+
+.auth-secondary-btn:hover {
+  color: #fff !important;
+  background-color: transparent !important;
+  text-decoration: underline !important;
+}
+
+.auth-title {
+  font-family: 'Cinzel', serif;
+  font-size: 32px;
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #e4dab5;
 }

@@ -1,31 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PlayerCard from '../Components/PlayerCard'
 import TournamentCard from '../Components/TournamentCard'
-
-const MOCK_PLAYERS = [
-    { id: 1, name: 'Scottie Scheffler', rank: 'No. 1' },
-    { id: 2, name: 'Rory McIlroy', rank: 'No. 3' },
-    { id: 3, name: 'Jon Rahm', rank: '--' },
-    { id: 4, name: 'Viktor Hovland', rank: 'No. 2' },
-    { id: 5, name: 'Patrick Cantlay', rank: 'No. 5' },
-    { id: 6, name: 'Tiger Woods', rank: '--' },
-    { id: 7, name: 'Xander Schauffele', rank: 'No. 10' },
-    { id: 8, name: 'Patrick Cantlay', rank: 'No. 7' },
-    { id: 9, name: 'Max Homa', rank: '--' },
-    { id: 10, name: 'Matt Fitzpatrick', rank: 'No. 4' },
-    { id: 11, name: 'Jordan Spieth', rank: 'No. 15' },
-    { id: 12, name: 'Cameron Smith', rank: '--' },
-    { id: 13, name: 'Justin Thomas', rank: 'No. 6' },
-    { id: 14, name: 'Collin Morikawa', rank: 'No. 8' },
-    { id: 15, name: 'Will Zalatoris', rank: '--' },
-    { id: 16, name: 'Tony Finau', rank: 'No. 9' },
-    { id: 17, name: 'Sam Burns', rank: 'No. 12' },
-    { id: 18, name: 'Tyrrell Hatton', rank: '--' },
-    { id: 19, name: 'Jason Day', rank: 'No. 11' },
-    { id: 20, name: 'Rickie Fowler', rank: 'No. 13' },
-    
-
-]
 
 const MOCK_TOURNAMENTS = [
     { id: 1, name: 'The Masters', status: 'Finished' },
@@ -39,8 +14,16 @@ export default function Dashboard({ user, goToProfile }) {
     const [searchMode, setSearchMode] = useState('player') // 'player' or 'tournament'
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedItem, setSelectedItem] = useState(null)
+    const [players, setPlayers] = useState([])
 
-    const data = searchMode === 'player' ? MOCK_PLAYERS : MOCK_TOURNAMENTS
+    useEffect(() => {
+        fetch('http://localhost:3000/players')
+            .then(res => res.json())
+            .then(data => setPlayers(data))
+            .catch(err => console.error("Failed to fetch players:", err))
+    }, [])
+
+    const data = searchMode === 'player' ? players : MOCK_TOURNAMENTS
     const filteredData = data.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
     )

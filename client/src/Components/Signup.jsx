@@ -3,12 +3,20 @@ import { Box, Stack, TextField, Button } from "@mui/material"
 
 const style = {
     position: 'absolute',
-    top: '40%',
+    top: '30%',
     left: '35%',
     width: '30%',
-    bgcolor: 'white',
-    boxShadow: 10,
+    bgcolor: 'rgb(3, 75, 0)',
+    color: 'white',
     p: 4,
+    borderRadius: '8px',
+    '& .MuiInputBase-input': { color: 'white' },
+    '& .MuiInputLabel-root': { color: 'white' },
+    '& .MuiOutlinedInput-root': {
+        '& fieldset': { borderColor: 'white' },
+        '&:hover fieldset': { borderColor: 'white' },
+        '&.Mui-focused fieldset': { borderColor: 'white' },
+    },
 }
 
 export default function Signup({ setUser, toggleLogin }) {
@@ -33,7 +41,8 @@ export default function Signup({ setUser, toggleLogin }) {
             const res = await fetch("http://localhost:3000/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password, firstName, lastName, age })
+                body: JSON.stringify({ email, password, firstName, lastName, age }),
+                credentials: 'include'
             })
 
             if (!res.ok) {
@@ -59,7 +68,7 @@ export default function Signup({ setUser, toggleLogin }) {
 
     return (
         <Box sx={style}>
-            <h2>Sign Up</h2>
+            <h2 className="auth-title">Sign Up</h2>
             {error && <p style={{ color: 'red' }}>{error}</p>}
             <Stack spacing={2}>
                 <Stack direction="row" spacing={2}>
@@ -72,8 +81,8 @@ export default function Signup({ setUser, toggleLogin }) {
                 <TextField required type="password" label="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             </Stack>
 
-            <Button variant="contained" disabled={!formValid} onClick={handleSignup} sx={{ mt: 2 }}>Sign Up</Button>
-            <Button sx={{ textTransform: 'none', fontSize: '12px' }} onClick={toggleLogin}>Already have an account? Login Here</Button>
+            <Button className="auth-primary-btn" disabled={!formValid} onClick={handleSignup}>Sign Up</Button>
+            <Button className="auth-secondary-btn" onClick={toggleLogin}>Already have an account? Login Here</Button>
         </Box>
     )
 }

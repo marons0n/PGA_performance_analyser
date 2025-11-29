@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import 'dotenv/config'
 import bcrypt from 'bcryptjs'
+import cookieParser from 'cookie-parser'
 
 
 // import { query } from './db/postgres.js';
@@ -12,21 +13,49 @@ import { supabase } from './db/supabase.js'; // Adjust path as needed
 const app = express()
 // it's nice to set the port number so it's always the same
 app.set('port', process.env.PORT || 3000);
+
 // set up some middleware to handle processing body requests
 app.use(express.json())
+app.use(cookieParser())
+
 // set up some midlleware to handle cors
-app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}))
 
 
 // Helper functions
 
-const API_KEY = process.env.SPORTSDATA_KEY
-const GOLF_API = "https://api.sportsdata.io/golf/v2/json"
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || "04f7d4c3a3msh99c777b54066983p1f7fe3jsnb87e251aeeb5"
+const SLASH_GOLF_URL = "https://live-golf-data.p.rapidapi.com"
 
-async function sportsApi(endpoint) { // Makes a request to sportsdata.io
-    const url = `${GOLF_API}/${endpoint}?key=${API_KEY}`
-    const res = await fetch(url)
-    return res.json()
+async function fetchSlashGolf(endpoint, params = {}) {
+    const url = new URL(`${SLASH_GOLF_URL}/${endpoint}`)
+    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
+
+    while (true) {
+        try {
+            const res = await fetch(url, {
+                headers: {
+                    'x-rapidapi-host': 'live-golf-data.p.rapidapi.com',
+                    'x-rapidapi-key': RAPIDAPI_KEY
+                }
+            })
+
+            if (!res.ok) {
+                // If rate limited or server error, wait and retry
+                console.log(`API Error ${res.status}: Retrying in 2 seconds...`)
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                continue
+            }
+
+            return await res.json()
+        } catch (err) {
+            console.error("Network Error: Retrying in 2 seconds...", err)
+            await new Promise(resolve => setTimeout(resolve, 2000))
+        }
+    }
 }
 
 
@@ -41,26 +70,31 @@ app.get('/up', (req, res) => {
 //AUTHENTICATION
 
 // Register user
-// Register user
 app.post('/auth/register', async (req, res) => {
     const { email, password, firstName, lastName, age } = req.body
 
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(password, salt)
 
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('users')
         .insert([{ email, password: hashedPassword, firstName, lastName, age }])
+        .select()
 
     if (error) {
         console.error(error)
         return res.status(500).json({ error: error.message })
     }
 
-    res.json({ success: true })
+    // Set cookie
+    if (data && data.length > 0) {
+        res.cookie('token', data[0].id, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }) // 1 day
+        res.json({ success: true, user: data[0] })
+    } else {
+        res.json({ success: true })
+    }
 })
 
-// Login user
 // Login user
 app.post('/auth/login', async (req, res) => {
     const { email, password } = req.body
@@ -83,94 +117,167 @@ app.post('/auth/login', async (req, res) => {
         return res.status(401).json({ error: "Invalid credentials" })
     }
 
+    // Set cookie
+    res.cookie('token', user.id, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }) // 1 day
+
     res.json({ success: true, user: user })
+})
+
+// Check auth status
+app.get('/auth/me', async (req, res) => {
+    const token = req.cookies.token
+
+    if (!token) {
+        return res.json({ user: null })
+    }
+
+    const { data, error } = await supabase.from('users').select('*').eq('id', token).single()
+
+    if (error || !data) {
+        return res.json({ user: null })
+    }
+
+    res.json({ user: data })
+})
+
+// Logout
+app.post('/auth/logout', (req, res) => {
+    res.clearCookie('token')
+    res.json({ success: true })
 })
 
 
 // Player Routes
 
-// Search players
-app.get('/players/search', async (req, res) => {
-    const queryString = req.query.query
+// Get all players (Top Rankings)
+app.get('/players', async (req, res) => {
+    try {
+        // Fetch OWGR Rankings (Stat ID 186)
+        const data = await fetchSlashGolf('stats', { year: '2025', statId: '186' })
 
-    const players = await sportsApi(`Players`) //Use external API directly (simple)
+        // Helper to handle potential MongoDB-style number objects
+        const extractValue = (val) => {
+            if (val && typeof val === 'object') {
+                if (val.$numberDouble) return val.$numberDouble
+                if (val.$numberInt) return val.$numberInt
+                if (val.$numberLong) return val.$numberLong
+            }
+            return val
+        }
 
-    const filtered = players.filter(p =>
-        p.FirstName.toLowerCase().includes(queryString.toLowerCase()) ||
-        p.LastName.toLowerCase().includes(queryString.toLowerCase())
-    )
+        // Map to a simplified format
+        const players = data.rankings.map(p => ({
+            id: p.playerId,
+            name: `${p.firstName} ${p.lastName}`,
+            rank: `No. ${p.rank}`,
+            country: p.country || 'Unknown',
+            wins: extractValue(p.numWins),
+            top10s: extractValue(p.numTop10s),
+            events: extractValue(p.events),
+            points: extractValue(p.totalPoints)
+        }))
 
-    res.json(filtered)
+        res.json(players)
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "Failed to fetch players" })
+    }
 })
 
 
-// Get player details
 app.get('/players/:id', async (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
 
-    const { data: cached } = await supabase.from('players').select('*').eq('id', id)
+    // check cache
+    const { data: cached } = await supabase
+        .from('players')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (cached && cached.length > 0) {
-        return res.json(cached[0])
+    if (cached) {
+        return res.json(cached);
     }
 
-    //else get player from api
-    const players = await sportsApi(`Players`)
-    const player = players.find(p => p.PlayerID == id)
+    // fetch from Slash Golf
+    const player = await fetchSlashGolf('players', { playerId: id });
 
-    if (!player) {
-        return res.status(404).json({ error: "Player not found" })
+    if (!player || !player.players || player.players.length === 0) {
+        return res.status(404).json({ error: "Player not found" });
     }
 
-    //and then after, cache into db so we dont needa get it again
+    const p = player.players[0];
+
+    // save to DB
     await supabase.from('players').insert([{
-        id: player.PlayerID,
-        name: player.FirstName + " " + player.LastName,
-        country: player.Country,
-        json_data: player
-    }])
+        id: p.playerId,
+        name: `${p.firstName} ${p.lastName}`,
+        country: p.country,
+        json_data: p
+    }]);
 
-    res.json(player)
+    res.json(p);
+});
 
-})
 
 
-//plater season stats
 app.get('/players/:id/stats', async (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
 
-    const stats = await sportsApi(`PlayerSeasonStats/${id}`)
-    res.json(stats)
-})
+    const data = await fetchSlashGolf('stats', { playerId: id });
+
+    res.json(data);
+});
 
 
-//Compare
+
 app.get('/players/compare', async (req, res) => {
-    const ids = req.query.ids.split(',')
+    const ids = req.query.ids.split(',');
 
-    const allPlayers = await sportsApi(`Players`)
-    const selected = allPlayers.filter(p => ids.includes(p.PlayerID.toString()))
+    const results = [];
 
-    res.json(selected)
-})
+    for (const id of ids) {
+        const player = await fetchSlashGolf('players', { playerId: id });
+        if (player.players && player.players.length > 0) {
+            results.push(player.players[0]);
+        }
+    }
+
+    res.json(results);
+});
+
 
 
 // tourney Routes
 
 app.get('/tournaments/search', async (req, res) => {
-    const queryString = req.query.query
-    const tournaments = await sportsApi(`Tournaments`)
+    const queryString = req.query.query.toLowerCase();
 
-    const filtered = tournaments.filter(t => t.Name.toLowerCase().includes(queryString.toLowerCase()))
+    const schedule = await fetchSlashGolf('schedule', {
+        year: '2025',
+        orgId: '1'
+    });
 
-    res.json(filtered)
-})
+    const filtered = schedule.tournaments.filter(t =>
+        t.tournName.toLowerCase().includes(queryString)
+    );
+
+    res.json(filtered);
+});
+
 
 app.get('/tournaments/:id', async (req, res) => {
-    const id = req.params.id
-    const leaderboard = await sportsApi(`Leaderboard/${id}`)
-    res.json(leaderboard)
-})
+    const id = req.params.id;
+
+    const leaderboard = await fetchSlashGolf('leaderboard', {
+        tournId: id,
+        year: '2025',
+        orgId: '1'
+    });
+
+    res.json(leaderboard);
+});
+
 
 
 

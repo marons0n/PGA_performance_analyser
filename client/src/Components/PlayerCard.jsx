@@ -15,6 +15,24 @@ export default function PlayerCard({ player }) {
             <div className="player-info">
                 <div className="player-first-name">{firstName}</div>
                 <div className="player-last-name">{lastName}</div>
+                <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+                    <div className="details-card">
+                        <h3>EVENTS</h3>
+                        <p>{player.events || '--'}</p>
+                    </div>
+                    <div className="details-card">
+                        <h3>WINS</h3>
+                        <p>{player.wins || '--'}</p>
+                    </div>
+                    <div className="details-card">
+                        <h3>TOP 10</h3>
+                        <p>{player.top10s || '--'}</p>
+                    </div>
+                    <div className="details-card">
+                        <h3>POINTS</h3>
+                        <p>{player.points || '--'}</p>
+                    </div>
+                </div>
             </div>
         </div>
     )

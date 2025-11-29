@@ -5,12 +5,21 @@ import { Box, Stack, TextField, Button } from "@mui/material"
 
 const style = {
     position: 'absolute',
-    top: '40%',
+    top: '30%',
     left: '35%',
     width: '30%',
-    bgcolor: 'white',
-    boxShadow: 10,
+    bgcolor: 'rgb(3, 75, 0)',
+    color: 'white',
     p: 4,
+    borderRadius: '8px',
+    '& .MuiInputBase-input': { color: 'white' },
+    '& .MuiInputLabel-root': { color: 'white' },
+    '& .MuiOutlinedInput-root': {
+        '& fieldset': { borderColor: 'white' },
+        '&:hover fieldset': { borderColor: 'white' },
+        '&.Mui-focused fieldset': { borderColor: 'white' },
+    },
+
 }
 
 
@@ -28,7 +37,8 @@ export default function Login({ setUser, toggleSignup }) {
             const res = await fetch("http://localhost:3000/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password }),
+                credentials: 'include'
             })
 
             if (!res.ok) {
@@ -51,14 +61,14 @@ export default function Login({ setUser, toggleSignup }) {
 
     return (<>
         <Box sx={style}>
-            <h2>Login</h2>
+            <h2 className="auth-title">Login</h2>
             <Stack spacing={2}>
                 <TextField required label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 <TextField required type="password" label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </Stack>
 
-            <Button variant="contained" disabled={!formValid} onClick={handleLogin}>Login</Button>
-            <Button sx={{ textTransform: 'none', fontSize: '12px' }} onClick={toggleSignup}>No account? Sign Up Here</Button>
+            <Button className="auth-primary-btn" disabled={!formValid} onClick={handleLogin}>Login</Button>
+            <Button className="auth-secondary-btn" onClick={toggleSignup}>No account? Sign Up Here</Button>
         </Box>
     </>)
 }

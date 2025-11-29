@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Login from './Components/Login.jsx'
 import Signup from './Components/Signup.jsx'
 import './App.css'
@@ -10,11 +10,32 @@ function App() {
   const [user, setUser] = useState(null)
   const [isLogin, setIsLogin] = useState(true)
   const [view, setView] = useState('dashboard')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function checkUser() {
+      try {
+        const res = await fetch('http://localhost:3000/auth/me', { credentials: 'include' })
+        const data = await res.json()
+        if (data.user) {
+          setUser(data.user)
+        }
+      } catch (err) {
+        console.error("Failed to fetch user session", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    checkUser()
+  }, [])
+
+  if (loading) return null // or a spinner
 
   if (!user) {
     return (<>
 
-      <h1>PGA Player Performance Analyzer</h1>
+      <h1 id='title'>PGA Player Performance Analyzer</h1>
+
       {isLogin ?
         <Login setUser={setUser} toggleSignup={() => setIsLogin(false)} /> :
         <Signup setUser={setUser} toggleLogin={() => setIsLogin(true)} />
