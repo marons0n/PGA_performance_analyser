@@ -3,11 +3,13 @@ import Login from './Components/Login.jsx'
 import Signup from './Components/Signup.jsx'
 import './App.css'
 
-// import Dashboard from './pages/Dashboard'
+import Dashboard from './pages/Dashboard'
+import Profile from './pages/Profile'
 
 function App() {
   const [user, setUser] = useState(null)
   const [isLogin, setIsLogin] = useState(true)
+  const [view, setView] = useState('dashboard')
 
   if (!user) {
     return (<>
@@ -18,11 +20,15 @@ function App() {
         <Signup setUser={setUser} toggleLogin={() => setIsLogin(true)} />
       }
 
+
     </>)
   }
 
-  // return <Dashboard user={user} />
-  return <h1>Hello</h1>
+  if (view === 'profile') {
+    return <Profile user={user} goBack={() => setView('dashboard')} />
+  }
+
+  return <Dashboard user={user} goToProfile={() => setView('profile')} />
 }
 
 export default App

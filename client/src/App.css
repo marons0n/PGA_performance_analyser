@@ -1,20 +1,304 @@
+html,
 body {
-  background-color: #005110;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #e4dab5;
+  font-family: 'Inter', sans-serif;
 }
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  height: 100%;
+  width: 100%;
+  /* Remove default padding/margins that might interfere with full height */
+  padding: 0;
+  margin: 0;
+  max-width: none;
 }
 
 h1 {
-  color: white;
-  position: absolute;
-  top: 15%;
-  left: 50%;
-  transform: translateX(-50%);
+  color: #000000;
   text-align: center;
   font-size: 50px;
+}
+
+/* Hide Scrollbar Utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+#menu-wrapper {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 0;
+  background-color: rgb(3, 75, 0);
+  color: white;
+  border-radius: 40px 40px 0 0;
+  overflow: hidden;
+  /* Ensure wrapper doesn't scroll */
+}
+
+#content {
+  padding: 20px;
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  border-radius: 40px 40px 0 0;
+  overflow: hidden;
+  /* Ensure content container doesn't scroll */
+}
+
+.menu-title {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: 'Cinzel', serif;
+  position: absolute;
+  left: 40px;
+  top: 13px;
+}
+
+.profile-icon {
+  position: absolute;
+  height: 40px;
+  width: 40px;
+  cursor: pointer;
+  border-radius: 50%;
+  border-color: white;
+  right: 40px;
+  top: 10px;
+}
+
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.profile-text-large {
+  font-size: 80px;
+  line-height: 1;
+  color: black;
+}
+
+.profile-text-large.bold {
+  font-weight: 900;
+}
+
+.profile-email {
+  font-size: 24px;
+  margin-top: 30px;
+  color: gray;
+}
+
+/* Dashboard Layout */
+.dashboard-content {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  background-color: white;
+}
+
+.search-section {
+  width: 35%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  /* gap: 15px; */
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.vertical-divider {
+  width: 3px;
+  background-color: #0056b3;
+  height: 80%;
+  align-self: center;
+  margin-left: 80px;
+  transform: translateY(-6%);
+}
+
+.details-section {
+  width: 65%;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.details-section::-webkit-scrollbar {
+  display: none;
+}
+
+/* Search Components */
+.search-toggles {
+  display: flex;
+  border: 1px solid #000;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: #003366;
+  color: white;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 14px;
+  border-right: 1px solid #000;
+}
+
+.toggle-btn:last-child {
+  border-right: none;
+}
+
+.toggle-btn.active {
+  background-color: #d0e1f9;
+  /* Light blue active */
+  color: black;
+}
+
+.search-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  font-family: 'Cinzel', serif;
+  color: #aaa;
+  text-transform: uppercase;
+}
+
+.search-results {
+  flex: 0 1 auto;
+  overflow-y: auto;
+  border: 1px solid #000;
+  /* Outer border */
+  display: flex;
+  flex-direction: column;
+  /* Hide scrollbar */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  margin-top: 30px;
+}
+
+.search-results::-webkit-scrollbar {
+  display: none;
+}
+
+.result-item {
+  display: flex;
+  align-items: stretch;
+  /* Stretch to fill height for borders */
+  border-bottom: 1px solid #000;
+  cursor: pointer;
+  background-color: white;
+  padding: 0;
+  /* Remove padding from container to let children handle it */
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-item:hover,
+.result-item.selected {
+  background-color: #f0f0f0;
+}
+
+.result-name {
+  flex: 1;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: black;
+  padding: 15px;
+  border-right: 1px solid #000;
+  /* Grid line */
+}
+
+.result-rank {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: black;
+  padding: 15px;
+  width: 80px;
+  text-align: center;
+}
+
+/* Player Card */
+.player-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.player-image-placeholder {
+  width: 150px;
+  height: 150px;
+  background-color: #e0e0e0;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.player-icon-svg {
+  width: 100px;
+  height: 100px;
+  fill: black;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.player-first-name {
+  font-family: 'Cinzel', serif;
+  font-size: 30px;
+  text-transform: uppercase;
+  color: black;
+  line-height: 1;
+}
+
+.player-last-name {
+  font-family: 'Cinzel', serif;
+  font-size: 60px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: black;
+  line-height: 1;
+}
+
+.details-card {
+  text-align: center;
+  color: #666;
 }
