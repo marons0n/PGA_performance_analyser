@@ -1,26 +1,28 @@
-import {useState, useEffect} from 'react'
+import { useState } from 'react'
+import Login from './Components/Login.jsx'
+import Signup from './Components/Signup.jsx'
+import './App.css'
 
+// import Dashboard from './pages/Dashboard'
 
 function App() {
-  const [apiStatus, setAPIStatus] = useState()
+  const [user, setUser] = useState(null)
+  const [isLogin, setIsLogin] = useState(true)
 
-  useEffect(() => {
-    fetch('http://localhost:3000/up')
-    .then(res => res.json())
-    .then(result => {
-      console.log(result.status)
-      setAPIStatus(result)
-  })
-  }, [])
+  if (!user) {
+    return (<>
 
-  
-  return (
-    <div>
-    <h1>To get started, begin editing SRC/App.js</h1>
-    {apiStatus ? <h2>Testing app end point: <div style={{color: apiStatus.status === 'up' ? 'green':'red'}}>{apiStatus.status}</div></h2>:null }
-    </div>
-  )
-   
+      <h1>PGA Player Performance Analyzer</h1>
+      {isLogin ?
+        <Login setUser={setUser} toggleSignup={() => setIsLogin(false)} /> :
+        <Signup setUser={setUser} toggleLogin={() => setIsLogin(true)} />
+      }
+
+    </>)
+  }
+
+  // return <Dashboard user={user} />
+  return <h1>Hello</h1>
 }
 
-export default App;
+export default App
