@@ -31,6 +31,7 @@ export default function Dashboard({ user, goToProfile }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const [players, setPlayers] = useState([]);
     const [courses, setCourses] = useState([]);               // Store course search results
+    const [preloadedCourses, setPreloadedCourses] = useState([]); // Store initial ~100 courses
 
     // Fetch players on load
     useEffect(() => {
@@ -40,11 +41,32 @@ export default function Dashboard({ user, goToProfile }) {
             .catch(err => console.error("Failed to fetch players:", err));
     }, []);
 
+    // Fetch initial courses on load
+    useEffect(() => {
+        fetch('http://localhost:3000/api/golf/courses')
+            .then(res => res.json())
+            .then(data => {
+                if (data.courses) {
+                    const normalized = data.courses.map(c => ({
+                        id: c.id,
+                        name: c.club_name || c.course_name || "Unknown Course",
+                        city: c.location?.city,
+                        state: c.location?.state,
+                        country: c.location?.country,
+                        address: c.location?.address
+                    }));
+                    setPreloadedCourses(normalized);
+                }
+            })
+            .catch(err => console.error("Failed to fetch initial courses:", err));
+    }, []);
+
     // --- Fetch Golf Courses when typing ---
     useEffect(() => {
         if (searchMode !== 'course') return;
+
         if (searchQuery.trim().length < 2) {
-            setCourses([]);
+            setCourses(preloadedCourses);
             return;
         }
 
@@ -84,7 +106,7 @@ export default function Dashboard({ user, goToProfile }) {
             clearTimeout(timeout);
         };
 
-    }, [searchMode, searchQuery]);
+    }, [searchMode, searchQuery, preloadedCourses]);
 
     // Choose which dataset to search
     const data =
@@ -103,7 +125,11 @@ export default function Dashboard({ user, goToProfile }) {
         setSearchMode(mode);
         setSelectedItem(null);
         setSearchQuery('');
-        setCourses([]); // Clear course results when switching away
+        if (mode === 'course') {
+            setCourses(preloadedCourses);
+        } else {
+            setCourses([]);
+        }
     };
 
     return (
@@ -165,19 +191,22 @@ export default function Dashboard({ user, goToProfile }) {
                                     className={`result-item ${selectedItem?.id === item.id ? 'selected' : ''}`}
                                     onClick={() => setSelectedItem(item)}
                                 >
-                                    <span className="result-name">
+                                    <span
+                                        className="result-name"
+                                        style={{ borderRight: searchMode === 'player' ? 'none' : undefined }}
+                                    >
                                         {item.name?.toUpperCase()}
                                     </span>
 
-                                    <span className="result-rank">
-                                        {
-                                            searchMode === 'player'
-                                                ? item.rank
-                                                : searchMode === 'tournament'
+                                    {searchMode !== 'player' && (
+                                        <span className="result-rank">
+                                            {
+                                                searchMode === 'tournament'
                                                     ? item.status
                                                     : item.city || ""
-                                        }
-                                    </span>
+                                            }
+                                        </span>
+                                    )}
                                 </div>
                             ))}
                         </div>

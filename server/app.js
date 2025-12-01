@@ -91,6 +91,37 @@ app.get("/rankings/2025", async (req, res) => {
     }
 });
 
+app.get("/api/golf/courses", async (req, res) => {
+    try {
+        const allCourses = [];
+        // Fetch 5 pages to get ~100 courses
+        for (let page = 1; page <= 5; page++) {
+            const apiUrl = `https://api.golfcourseapi.com/v1/courses?page=${page}`;
+            const response = await fetch(apiUrl, {
+                headers: {
+                    "Authorization": `Key ${process.env.GOLF_API_KEY}`
+                }
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to fetch page ${page}: ${response.statusText}`);
+                continue;
+            }
+
+            const data = await response.json();
+            if (data.courses && Array.isArray(data.courses)) {
+                allCourses.push(...data.courses);
+            }
+        }
+
+        res.json({ courses: allCourses });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch courses" });
+    }
+});
+
 app.get("/api/golf/search", async (req, res) => {
     const userQuery = req.query.query;
 
