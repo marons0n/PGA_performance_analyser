@@ -67,6 +67,31 @@ app.get('/up', (req, res) => {
     res.json({ status: 'up' })
 })
 
+app.get("/api/golf/search", async (req, res) => {
+    const userQuery = req.query.query;
+
+    if (!userQuery) {
+        return res.status(400).json({ error: "Missing search query" });
+    }
+
+    try {
+        const apiUrl = `https://api.golfcourseapi.com/v1/search?search_query=${encodeURIComponent(userQuery)}`;
+
+        const response = await fetch(apiUrl, {
+            headers: {
+                "Authorization": `Key ${process.env.GOLF_API_KEY}`
+            }
+        });
+
+        const data = await response.json();
+        res.json(data);
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fetch search results" });
+    }
+});
+
 //AUTHENTICATION
 
 // Register user
