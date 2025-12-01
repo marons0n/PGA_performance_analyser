@@ -67,6 +67,30 @@ app.get('/up', (req, res) => {
     res.json({ status: 'up' })
 })
 
+app.get("/rankings/2025", async (req, res) => {
+    try {
+        const apiKey = process.env.SPORTSDATA_API_KEY;
+
+        if (!apiKey) {
+            return res.status(500).json({ error: "Missing SPORTS_DATA_API_KEY in .env" });
+        }
+
+        const url = `https://api.sportsdata.io/golf/v2/json/Rankings/2025?key=${apiKey}`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            return res.status(500).json({ error: "Failed to fetch rankings" });
+        }
+
+        const data = await response.json();
+        res.json(data);
+
+    } catch (error) {
+        console.error("Rankings Fetch Error:", error);
+        res.status(500).json({ error: "Server error fetching rankings" });
+    }
+});
+
 app.get("/api/golf/search", async (req, res) => {
     const userQuery = req.query.query;
 
