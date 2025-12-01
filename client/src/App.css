@@ -359,10 +359,6 @@ h1 {
   flex-direction: column;
   width: 100%;
   padding: 40px;
-  background: linear-gradient(135deg, #fdfbf7 0%, #f4efe9 100%);
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e4dab5;
   box-sizing: border-box;
 }
 
@@ -401,7 +397,6 @@ h1 {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   color: #888;
-  font-style: italic;
 }
 
 .course-stats-grid {
@@ -447,4 +442,20 @@ h1 {
   font-size: 24px;
   color: #aaa;
   margin-top: 100px;
+}
+
+.course-image-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 40px;
+}
+
+.course-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
