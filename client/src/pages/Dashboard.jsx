@@ -1,21 +1,7 @@
 import { useState, useEffect } from 'react'
 import PlayerCard from '../Components/PlayerCard'
 import TournamentCard from '../Components/TournamentCard'
-
-// --- CourseCard component ---
-function CourseCard({ course }) {
-    if (!course) return <div className="empty-details">Select a course to view details</div>;
-
-    return (
-        <div className="course-card">
-            <h2>{course.name}</h2>
-            <p><strong>City:</strong> {course.city || "N/A"}</p>
-            <p><strong>State:</strong> {course.state || "N/A"}</p>
-            <p><strong>Country:</strong> {course.country || "N/A"}</p>
-            <p><strong>Address:</strong> {course.address || "N/A"}</p>
-        </div>
-    );
-}
+import CourseCard from '../Components/CourseCard'
 
 const MOCK_TOURNAMENTS = [
     { id: 1, name: 'The Masters', status: 'Finished' },
@@ -53,7 +39,8 @@ export default function Dashboard({ user, goToProfile }) {
                         city: c.location?.city,
                         state: c.location?.state,
                         country: c.location?.country,
-                        address: c.location?.address
+                        address: c.location?.address,
+                        tees: c.tees
                     }));
                     setPreloadedCourses(normalized);
                 }
@@ -91,7 +78,8 @@ export default function Dashboard({ user, goToProfile }) {
                         city: c.location?.city,
                         state: c.location?.state,
                         country: c.location?.country,
-                        address: c.location?.address
+                        address: c.location?.address,
+                        tees: c.tees
                     }));
 
                     setCourses(normalized);

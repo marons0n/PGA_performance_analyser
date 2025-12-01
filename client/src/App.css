@@ -352,3 +352,99 @@ h1 {
   text-align: center;
   color: #e4dab5;
 }
+
+/* Course Card Specifics */
+.course-card-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 40px;
+  background: linear-gradient(135deg, #fdfbf7 0%, #f4efe9 100%);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e4dab5;
+  box-sizing: border-box;
+}
+
+.course-header {
+  text-align: center;
+  margin-bottom: 40px;
+  border-bottom: 2px solid #e4dab5;
+  padding-bottom: 20px;
+}
+
+.course-name {
+  font-family: 'Cinzel', serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #1a3c34;
+  /* Dark green */
+  margin: 0 0 15px 0;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.course-location {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.course-address {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+.course-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.stat-box {
+  background-color: white;
+  padding: 25px 10px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+}
+
+.stat-label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: #1a3c34;
+}
+
+.empty-details {
+  width: 100%;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 24px;
+  color: #aaa;
+  margin-top: 100px;
+}
