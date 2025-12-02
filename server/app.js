@@ -27,6 +27,37 @@ app.use(cors({
 
 // Helper functions
 
+app.get("/schedule/2024", async (req, res) => {
+    try {
+        const apiKey = process.env.RAPIDAPI_KEY;
+        const apiHost = process.env.RAPIDAPI_HOST_LIVE;
+
+        if (!apiKey || !apiHost) {
+            return res.status(500).json({ error: "Missing RAPIDAPI_KEY or RAPIDAPI_HOST in .env" });
+        }
+
+        const url = "https://live-golf-data.p.rapidapi.com/schedule?orgId=1&year=2024";
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "x-rapidapi-key": apiKey,
+                "x-rapidapi-host": apiHost
+            }
+        });
+
+        if (!response.ok) {
+            return res.status(500).json({ error: "Failed to fetch schedule" });
+        }
+
+        const data = await response.json();
+        res.json(data);
+
+    } catch (error) {
+        console.error("Schedule Fetch Error:", error);
+        res.status(500).json({ error: "Server error fetching schedule" });
+    }
+});
 
 app.get("/world-rankings", async (req, res) => {
     try {
