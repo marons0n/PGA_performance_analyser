@@ -27,7 +27,43 @@ app.use(cors({
 
 // Helper functions
 
-const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || "04f7d4c3a3msh99c777b54066983p1f7fe3jsnb87e251aeeb5"
+
+app.get("/world-rankings", async (req, res) => {
+    try {
+        const apiKey = process.env.RAPIDAPI_KEY;
+        const apiHost = process.env.RAPIDAPI_HOST;
+
+        if (!apiKey || !apiHost) {
+            return res.status(500).json({
+                error: "Missing RAPIDAPI_KEY or RAPIDAPI_HOST in .env"
+            });
+        }
+
+        const url = "https://golf-leaderboard-data.p.rapidapi.com/world-rankings";
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "x-rapidapi-key": apiKey,
+                "x-rapidapi-host": apiHost,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            return res.status(500).json({ error: "Failed to fetch world rankings" });
+        }
+
+        const data = await response.json();
+        res.json(data);
+
+    } catch (error) {
+        console.error("World Rankings Fetch Error:", error);
+        res.status(500).json({ error: "Server error fetching world rankings" });
+    }
+});
+
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || "58c51c9bfemsh5ae42472b4e6e96p188532jsnd6e194609cdf"
 const SLASH_GOLF_URL = "https://live-golf-data.p.rapidapi.com"
 
 async function fetchSlashGolf(endpoint, params = {}) {
