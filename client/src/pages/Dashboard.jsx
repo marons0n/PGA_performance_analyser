@@ -17,6 +17,7 @@ export default function Dashboard({ user, goToProfile }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedItem, setSelectedItem] = useState(null);
     const [players, setPlayers] = useState([]);
+    const [tournaments, setTournaments] = useState([]);
     const [courses, setCourses] = useState([]);               // Store course search results
     const [preloadedCourses, setPreloadedCourses] = useState([]); // Store initial ~100 courses
 
@@ -26,6 +27,26 @@ export default function Dashboard({ user, goToProfile }) {
             .then(res => res.json())
             .then(data => setPlayers(data))
             .catch(err => console.error("Failed to fetch players:", err));
+    }, []);
+
+    // Fetch tournaments on load
+    useEffect(() => {
+        fetch('http://localhost:3000/tournaments')
+            .then(res => res.json())
+            .then(data => {
+                const now = new Date();
+                const processed = data.map(t => {
+                    const start = new Date(t.start_date);
+                    const end = new Date(t.end_date);
+                    let status = 'Upcoming';
+                    if (now > end) status = 'Finished';
+                    else if (now >= start && now <= end) status = 'Live';
+
+                    return { ...t, status };
+                });
+                setTournaments(processed);
+            })
+            .catch(err => console.error("Failed to fetch tournaments:", err));
     }, []);
 
     // Fetch initial courses on load
@@ -102,7 +123,7 @@ export default function Dashboard({ user, goToProfile }) {
         searchMode === 'player'
             ? players
             : searchMode === 'tournament'
-                ? MOCK_TOURNAMENTS
+                ? tournaments
                 : courses;
 
     // This now works for courses because `item.name` exists

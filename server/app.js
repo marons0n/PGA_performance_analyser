@@ -426,8 +426,130 @@ app.get('/tournaments/:id', async (req, res) => {
 });
 
 
+// tourney Routes
+
+app.get('/tournaments/search', async (req, res) => {
+    const queryString = req.query.query.toLowerCase();
+
+    const schedule = await fetchSlashGolf('schedule', {
+        year: '2025',
+        orgId: '1'
+    });
+
+    const filtered = schedule.tournaments.filter(t =>
+        t.tournName.toLowerCase().includes(queryString)
+    );
+
+    res.json(filtered);
+});
 
 
+app.get('/tournaments/:id', async (req, res) => {
+    const id = req.params.id;
+
+    const leaderboard = await fetchSlashGolf('leaderboard', {
+        tournId: id,
+        year: '2025',
+        orgId: '1'
+    });
+
+    res.json(leaderboard);
+});
+
+// Get all tournaments from DB
+app.get('/tournaments', async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('tournaments')
+            .select('*')
+            .order('start_date', { ascending: true });
+
+        if (error) {
+            console.error("Supabase Error:", error);
+            return res.status(500).json({ error: "Failed to fetch tournaments" });
+        }
+
+        res.json(data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// Enrich Tournament (Image)
+app.post('/api/golf/tournaments/enrich', async (req, res) => {
+    const { tournament } = req.body;
+    if (!tournament || !tournament.id) return res.status(400).json({ error: "Invalid tournament data" });
+
+    try {
+        // 1. Check if image already exists in DB
+        const { data: cached, error: dbError } = await supabase
+            .from('tournaments')
+            .select('*')
+            .eq('id', tournament.id)
+            .single();
+
+        if (cached && cached.image_url) {
+            return res.json(cached);
+        }
+
+        // 2. Fetch Image if missing
+        console.log(`Fetching image for tournament: ${tournament.name}`);
+        const query = `${tournament.name} golf`;
+        let imageUrl = null;
+
+        try {
+            const serpResult = await new Promise((resolve, reject) => {
+                getJson({
+                    q: query,
+                    engine: "google_images",
+                    ijn: "0",
+                    tbs: "isz:l",
+                    api_key: process.env.SERPAPI_KEY
+                }, (json) => {
+                    if (json.error) reject(json.error);
+                    else resolve(json);
+                });
+            });
+
+            if (serpResult["images_results"]?.length > 0) {
+                const validImage = serpResult["images_results"].find(img =>
+                    img.original &&
+                    !img.original.includes("fbsbx.com") &&
+                    !img.original.includes("facebook.com") &&
+                    !img.original.includes("instagram.com")
+                );
+                imageUrl = validImage ? validImage.original : serpResult["images_results"][0].thumbnail;
+            }
+        } catch (serpErr) {
+            console.error("SerpApi Failed:", serpErr);
+        }
+
+        // 3. Update Supabase
+        if (imageUrl) {
+            const { data: updated, error: updateError } = await supabase
+                .from('tournaments')
+                .update({ image_url: imageUrl })
+                .eq('id', tournament.id)
+                .select()
+                .single();
+
+            if (updateError) {
+                console.error("Supabase Update Error:", updateError);
+                // Return data with image even if save failed
+                return res.json({ ...tournament, image_url: imageUrl });
+            }
+            return res.json(updated);
+        }
+
+        // No image found
+        res.json(tournament);
+
+    } catch (err) {
+        console.error("Tournament Enrichment Error:", err);
+        res.status(500).json({ error: "Failed to enrich tournament" });
+    }
+});
 
 //server start
 app.listen(app.get('port'), () => {
