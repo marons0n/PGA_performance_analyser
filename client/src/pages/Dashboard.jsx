@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import PlayerCard from '../Components/PlayerCard'
 import TournamentCard from '../Components/TournamentCard'
 import CourseCard from '../Components/CourseCard'
+import PlayerPointsChart from '../Components/PlayerPointsChart'
 
 const MOCK_TOURNAMENTS = [
     { id: 1, name: 'The Masters', status: 'Finished' },
@@ -203,7 +204,12 @@ export default function Dashboard({ user, goToProfile }) {
                     <div className="vertical-divider"></div>
 
                     <div className="details-section">
-                        {searchMode === 'player' && <PlayerCard player={selectedItem} />}
+                        {searchMode === 'player' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' }}>
+                                <PlayerPointsChart players={players} />
+                                <PlayerCard player={selectedItem} />
+                            </div>
+                        )}
                         {searchMode === 'tournament' && <TournamentCard tournament={selectedItem} />}
                         {searchMode === 'course' && <CourseCard course={selectedItem} />}
                     </div>
