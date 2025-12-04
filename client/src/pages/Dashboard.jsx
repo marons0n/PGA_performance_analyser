@@ -3,6 +3,7 @@ import PlayerCard from '../Components/PlayerCard'
 import TournamentCard from '../Components/TournamentCard'
 import CourseCard from '../Components/CourseCard'
 import PlayerPointsChart from '../Components/PlayerPointsChart'
+import TournamentPurseChart from '../Components/TournamentPurseChart'
 
 const MOCK_TOURNAMENTS = [
     { id: 1, name: 'The Masters', status: 'Finished' },
@@ -231,7 +232,12 @@ export default function Dashboard({ user, goToProfile }) {
                                 <PlayerCard player={selectedItem} />
                             </div>
                         )}
-                        {searchMode === 'tournament' && <TournamentCard tournament={selectedItem} />}
+                        {searchMode === 'tournament' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' }}>
+                                <TournamentPurseChart />
+                                <TournamentCard tournament={selectedItem} />
+                            </div>
+                        )}
                         {searchMode === 'course' && <CourseCard course={selectedItem} />}
                     </div>
                 </div>

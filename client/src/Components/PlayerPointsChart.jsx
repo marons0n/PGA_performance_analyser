@@ -19,11 +19,10 @@ export default function PlayerPointsChart({ players = [], maxPlayers = 8 }) {
             {data.length > 0 ? (
                 <ResponsiveContainer width="100%" height="80%">
                     <BarChart data={data} margin={{ top: 10, right: 16, left: 16, bottom: 20 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" height={60} />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="points" fill="#1976d2" />
+                        <Bar dataKey="points" fill="#329ac3ff" />
                     </BarChart>
                 </ResponsiveContainer>
             ) : (
