@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import PlayerCard from '../Components/PlayerCard'
 import TournamentCard from '../Components/TournamentCard'
 import CourseCard from '../Components/CourseCard'
-import PlayerPointsChart from '../Components/PlayerPointsChart'
+import PlayerComparison from '../Components/PlayerComparison'
 
 const MOCK_TOURNAMENTS = [
     { id: 1, name: 'The Masters', status: 'Finished' },
@@ -16,6 +16,9 @@ export default function Dashboard({ user, goToProfile }) {
     const [searchMode, setSearchMode] = useState('player');   // player | tournament | course
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedItem, setSelectedItem] = useState(null);
+    const [comparisonPlayer, setComparisonPlayer] = useState(null); // The second player for comparison
+    const [isSelectingOpponent, setIsSelectingOpponent] = useState(false); // Mode to select the second player
+
     const [players, setPlayers] = useState([]);
     const [tournaments, setTournaments] = useState([]);
     const [courses, setCourses] = useState([]);               // Store course search results
@@ -23,11 +26,30 @@ export default function Dashboard({ user, goToProfile }) {
 
     // Fetch players on load
     useEffect(() => {
+        fetchPlayers();
+    }, []);
+
+    const fetchPlayers = () => {
         fetch('http://localhost:3000/players')
             .then(res => res.json())
-            .then(data => setPlayers(data))
+            .then(data => {
+                const formatted = data.map(p => ({
+                    ...p,
+                    name: `${p.firstName} ${p.lastName}`
+                }));
+                setPlayers(formatted);
+            })
             .catch(err => console.error("Failed to fetch players:", err));
-    }, []);
+    };
+
+    const handleUpdatePlayers = () => {
+        fetch('http://localhost:3000/players/update')
+            .then(res => res.json())
+            .then(() => {
+                fetchPlayers();
+            })
+            .catch(err => console.error("Failed to update players:", err));
+    };
 
     // Fetch tournaments on load
     useEffect(() => {
@@ -142,6 +164,42 @@ export default function Dashboard({ user, goToProfile }) {
         }
     };
 
+    const handleCompareClick = (player) => {
+        setIsSelectingOpponent(true);
+        setSearchQuery(''); // Clear search to show full list or let user search
+    };
+
+    const handleCloseComparison = () => {
+        setComparisonPlayer(null);
+        setIsSelectingOpponent(false);
+    };
+
+    const handlePlayerSelect = (item) => {
+        // If we are in "select opponent" mode
+        if (isSelectingOpponent && searchMode === 'player') {
+            fetch(`http://localhost:3000/players/${item.id}/details`)
+                .then(res => res.json())
+                .then(details => {
+                    const fullDetails = { ...item, ...details };
+                    setComparisonPlayer(fullDetails);
+                    setIsSelectingOpponent(false); // Done selecting
+                })
+                .catch(err => console.error("Failed to fetch details:", err));
+            return;
+        }
+
+        // Normal selection
+        setSelectedItem(item);
+        if (searchMode === 'player') {
+            fetch(`http://localhost:3000/players/${item.id}/details`)
+                .then(res => res.json())
+                .then(details => {
+                    setSelectedItem(prev => ({ ...prev, ...details }));
+                })
+                .catch(err => console.error("Failed to fetch details:", err));
+        }
+    };
+
     return (
         <>
             <div id='menu-wrapper'>
@@ -177,20 +235,33 @@ export default function Dashboard({ user, goToProfile }) {
                             >
                                 COURSES
                             </button>
+
+                            {searchMode === 'player' && (
+                                <button
+                                    className="update-btn"
+                                    onClick={handleUpdatePlayers}
+                                    title="Update Player Rankings"
+                                >
+                                    ↻
+                                </button>
+                            )}
                         </div>
 
                         <input
                             type="text"
                             placeholder={
-                                searchMode === 'player'
-                                    ? "SEARCH FOR PLAYERS"
-                                    : searchMode === 'tournament'
-                                        ? "SEARCH FOR TOURNAMENTS"
-                                        : "SEARCH FOR GOLF COURSES"
+                                isSelectingOpponent
+                                    ? "SELECT OPPONENT..."
+                                    : searchMode === 'player'
+                                        ? "SEARCH FOR PLAYERS"
+                                        : searchMode === 'tournament'
+                                            ? "SEARCH FOR TOURNAMENTS"
+                                            : "SEARCH FOR GOLF COURSES"
                             }
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="search-input"
+                            style={isSelectingOpponent ? { borderColor: '#003366', borderWidth: '2px' } : {}}
                         />
 
                         {/* Dynamic Results */}
@@ -199,7 +270,7 @@ export default function Dashboard({ user, goToProfile }) {
                                 <div
                                     key={item.id || idx}
                                     className={`result-item ${selectedItem?.id === item.id ? 'selected' : ''}`}
-                                    onClick={() => setSelectedItem(item)}
+                                    onClick={() => handlePlayerSelect(item)}
                                 >
                                     <span
                                         className="result-name"
@@ -227,8 +298,18 @@ export default function Dashboard({ user, goToProfile }) {
                     <div className="details-section">
                         {searchMode === 'player' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' }}>
-                                <PlayerPointsChart players={players} />
-                                <PlayerCard player={selectedItem} />
+                                {comparisonPlayer ? (
+                                    <PlayerComparison
+                                        player1={selectedItem}
+                                        player2={comparisonPlayer}
+                                        onClose={handleCloseComparison}
+                                    />
+                                ) : (
+                                    <PlayerCard
+                                        player={selectedItem}
+                                        onCompare={handleCompareClick}
+                                    />
+                                )}
                             </div>
                         )}
                         {searchMode === 'tournament' && <TournamentCard tournament={selectedItem} />}
