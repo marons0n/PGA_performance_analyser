@@ -246,11 +246,18 @@ h1 {
 .player-card {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 40px;
   width: 100%;
   max-width: none;
+}
+
+.player-left-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 .player-image-placeholder {
@@ -261,26 +268,40 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-left: 40px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .player-icon-svg {
   width: 100px;
   height: 100px;
-  fill: black;
+  fill: #333;
 }
 
 .player-info {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  flex: 1;
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e4dab5;
+  padding-bottom: 20px;
+}
+
+.player-names {
+  display: flex;
+  flex-direction: column;
 }
 
 .player-first-name {
   font-family: 'Cinzel', serif;
   font-size: 30px;
   text-transform: uppercase;
-  color: black;
+  color: #555;
   line-height: 1;
 }
 
@@ -293,6 +314,72 @@ h1 {
   line-height: 1;
 }
 
+.player-rank-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.rank-label {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 2px;
+}
+
+.rank-value {
+  font-family: 'Cinzel', serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: #003366;
+  line-height: 1;
+  margin-top: 10px;
+}
+
+.rank-meta-row { 
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.mini-flag-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-flag {
+  width: 25px;
+  height: auto;
+  border-radius: 2px;
+}
+
+.mini-country {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.mini-age {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-left: 1px solid #ccc;
+  padding-left: 15px;
+}
+
+.player-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
 .details-card {
   text-align: center;
   color: #666;
@@ -303,6 +390,7 @@ h1 {
   font-size: 50px;
   margin-top: 7%;
 }
+
 
 /* Auth Buttons */
 .auth-primary-btn {
@@ -458,4 +546,105 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Player Comparison */
+.comparison-container {
+  width: 100%;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e4dab5;
+  padding-bottom: 10px;
+}
+
+.comparison-title {
+  font-family: 'Cinzel', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a3c34;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  background-color: rgb(3, 75, 0);
+  color: white;
+  text-transform: uppercase;
+  border-radius: 4px;
+  border: none;
+}
+
+.close-btn:hover {
+  background-color: rgb(4, 125, 0);;
+}
+
+.comparison-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.comparison-player-card {
+  text-align: center;
+  flex: 1;
+}
+
+.comparison-name {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.comparison-rank {
+  font-family: 'Cinzel', serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: #003366;
+}
+
+.comparison-vs {
+  font-family: 'Cinzel', serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #e4dab5;
+  margin: 0 20px;
+}
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+}
+
+.compare-btn {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.compare-btn:hover {
+  background-color: #002244;
 }

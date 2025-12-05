@@ -2,12 +2,7 @@ import { useState, useEffect } from 'react'
 import PlayerCard from '../Components/PlayerCard'
 import TournamentCard from '../Components/TournamentCard'
 import CourseCard from '../Components/CourseCard'
-import TournamentPurseChart from '../Components/TournamentPurseChart'
 import PlayerComparison from '../Components/PlayerComparison'
-
-
-
-
 
 const MOCK_TOURNAMENTS = [
     { id: 1, name: 'The Masters', status: 'Finished' },
@@ -28,8 +23,6 @@ export default function Dashboard({ user, goToProfile }) {
     const [tournaments, setTournaments] = useState([]);
     const [courses, setCourses] = useState([]);               // Store course search results
     const [preloadedCourses, setPreloadedCourses] = useState([]); // Store initial ~100 courses
-    const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
-    const [flaggedIds, setFlaggedIds] = useState([]);
 
     // Fetch players on load
     useEffect(() => {
@@ -148,36 +141,17 @@ export default function Dashboard({ user, goToProfile }) {
     }, [searchMode, searchQuery, preloadedCourses]);
 
     // Choose which dataset to search
-    let filteredData = [];
+    const data =
+        searchMode === 'player'
+            ? players
+            : searchMode === 'tournament'
+                ? tournaments
+                : courses;
 
-    if (searchMode === "course") {
-        // Start with master list
-        filteredData = [...preloadedCourses];
-
-        // Flag filter
-        if (showFlaggedOnly) {
-            filteredData = filteredData.filter(c =>
-                flaggedIds.includes(String(c.id))
-            );
-        }
-
-        // Search filter
-        if (searchQuery.trim() !== "") {
-            filteredData = filteredData.filter(c =>
-                c.name?.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-    }
-    else if (searchMode === "player") {
-        filteredData = players.filter(p =>
-            p.name?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }
-    else if (searchMode === "tournament") {
-        filteredData = tournaments.filter(t =>
-            t.name?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }
+    // This now works for courses because `item.name` exists
+    const filteredData = data.filter(item =>
+        item.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const handleModeChange = (mode) => {
         setSearchMode(mode);
@@ -194,7 +168,6 @@ export default function Dashboard({ user, goToProfile }) {
         setIsSelectingOpponent(true);
         setSearchQuery(''); // Clear search to show full list or let user search
     };
-
 
     const handleCloseComparison = () => {
         setComparisonPlayer(null);
@@ -291,83 +264,33 @@ export default function Dashboard({ user, goToProfile }) {
                             style={isSelectingOpponent ? { borderColor: '#003366', borderWidth: '2px' } : {}}
                         />
 
-                        {searchMode === "course" && (
-                            <button
-                                className="toggle-btn"
-                                style={{
-                                    backgroundColor: showFlaggedOnly ? "#1a5d1a" : "#eee",
-                                    color: showFlaggedOnly ? "white" : "black",
-                                    marginTop: "8px",
-                                    padding: "5px"
-                                }}
-                                onClick={() => {
-                                    if (!user) return alert("Login required");
-
-                                    const newState = !showFlaggedOnly;
-                                    setShowFlaggedOnly(newState);
-
-                                    // Fetch flagged IDs once when turning ON
-                                    if (newState) {
-                                        fetch(`http://localhost:3000/api/golf/courses/flagged/${user.id}`)
-                                            .then(res => res.json())
-                                            .then(data =>
-                                                setFlaggedIds((data.flagged || []).map(id => String(id)))
-                                            );
-                                    }
-                                }}
-                            >
-                                {showFlaggedOnly ? "SHOW ALL COURSES" : "SHOW FLAGGED ONLY"}
-                            </button>
-                        )}
                         {/* Dynamic Results */}
-                        <div
-                            className="search-results"
-                            style={
-                                searchMode === "course"
-                                    ? {
-                                        minHeight: "500px",
-                                        maxHeight: "500px",
-                                        overflowY: "auto",
-                                    }
-                                    : {}
-                            }
-                        >
-
-
-                            {filteredData.length === 0 && (
+                        <div className="search-results">
+                            {filteredData.map((item, idx) => (
                                 <div
-                                    style={{
-                                        padding: "20px",
-                                        textAlign: "center",
-                                        color: "white",
-                                        fontSize: "18px"
-                                    }}
+                                    key={item.id || idx}
+                                    className={`result-item ${selectedItem?.id === item.id ? 'selected' : ''}`}
+                                    onClick={() => handlePlayerSelect(item)}
                                 >
-                                    No flagged courses found
-                                </div>
-                            )}
-
-                            {filteredData.length > 0 &&
-                                filteredData.map((item, idx) => (
-                                    <div
-                                        key={item.id || idx}
-                                        className={`result-item ${selectedItem?.id === item.id ? 'selected' : ''}`}
-                                        onClick={() => handlePlayerSelect(item)}
+                                    <span
+                                        className="result-name"
+                                        style={{ borderRight: searchMode === 'player' ? 'none' : undefined }}
                                     >
-                                        <span className="result-name">{item.name?.toUpperCase()}</span>
+                                        {item.name?.toUpperCase()}
+                                    </span>
 
-                                        {searchMode !== 'player' && (
-                                            <span className="result-rank">
-                                                {searchMode === 'tournament' ? item.status : item.city || ""}
-                                            </span>
-                                        )}
-                                    </div>
-                                ))
-                            }
-
+                                    {searchMode !== 'player' && (
+                                        <span className="result-rank">
+                                            {
+                                                searchMode === 'tournament'
+                                                    ? item.status
+                                                    : item.city || ""
+                                            }
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-
-
                     </div>
 
                     <div className="vertical-divider"></div>
@@ -382,22 +305,15 @@ export default function Dashboard({ user, goToProfile }) {
                                         onClose={handleCloseComparison}
                                     />
                                 ) : (
-                                    <>
-                                        <PlayerCard
-                                            player={selectedItem}
-                                            onCompare={handleCompareClick}
-                                        />
-                                    </>
+                                    <PlayerCard
+                                        player={selectedItem}
+                                        onCompare={handleCompareClick}
+                                    />
                                 )}
                             </div>
                         )}
-                        {searchMode === 'tournament' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' }}>
-                                <TournamentPurseChart />
-                                <TournamentCard tournament={selectedItem} />
-                            </div>
-                        )}
-                        {searchMode === 'course' && <CourseCard course={selectedItem} user={user} />}
+                        {searchMode === 'tournament' && <TournamentCard tournament={selectedItem} />}
+                        {searchMode === 'course' && <CourseCard course={selectedItem} />}
                     </div>
                 </div>
             </div>

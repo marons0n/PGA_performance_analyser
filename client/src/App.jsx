@@ -29,7 +29,9 @@ function App() {
     checkUser()
   }, [])
 
-  if (loading) return null // or a spinner
+  if (loading) {
+    return null // or a spinner
+  }
 
   if (!user) {
     return (<>
