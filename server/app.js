@@ -3,11 +3,11 @@ import cors from 'cors'
 import 'dotenv/config'
 import bcrypt from 'bcryptjs'
 import cookieParser from 'cookie-parser'
+import fetch from 'node-fetch';
 
 
 // import { query } from './db/postgres.js';
 import { supabase } from './db/supabase.js'; // Adjust path as needed
-
 
 // create the app
 const app = express()
@@ -158,36 +158,28 @@ app.get("/rankings/2025", async (req, res) => {
     }
 });
 
+let cachedCourses = null;
+
 app.get("/api/golf/courses", async (req, res) => {
+    if (cachedCourses) {
+        return res.json({ courses: cachedCourses });
+    }
+
     try {
-        const allCourses = [];
-        // Fetch 5 pages to get ~100 courses
-        for (let page = 1; page <= 5; page++) {
-            const apiUrl = `https://api.golfcourseapi.com/v1/courses?page=${page}`;
-            const response = await fetch(apiUrl, {
-                headers: {
-                    "Authorization": `Key ${process.env.GOLF_API_KEY}`
-                }
-            });
+        const apiUrl = `https://api.golfcourseapi.com/v1/courses?page=1`;
+        const response = await fetch(apiUrl, {
+            headers: { "Authorization": `Key ${process.env.GOLF_API_KEY}` }
+        });
 
-            if (!response.ok) {
-                console.error(`Failed to fetch page ${page}: ${response.statusText}`);
-                continue;
-            }
-
-            const data = await response.json();
-            if (data.courses && Array.isArray(data.courses)) {
-                allCourses.push(...data.courses);
-            }
-        }
-
-        res.json({ courses: allCourses });
+        const data = await response.json();
+        cachedCourses = data.courses;
+        res.json({ courses: cachedCourses });
 
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: "Failed to fetch courses" });
     }
 });
+
 
 app.get("/api/golf/search", async (req, res) => {
     const userQuery = req.query.query;
@@ -550,6 +542,125 @@ app.post('/api/golf/tournaments/enrich', async (req, res) => {
         res.status(500).json({ error: "Failed to enrich tournament" });
     }
 });
+
+
+// -----------------------------
+// SUPABASE FLAG STORAGE (PERSISTENT)
+// -----------------------------
+
+// FLAG / UNFLAG A COURSE
+app.post("/api/golf/courses/flag", async (req, res) => {
+    console.log("FLAG REQUEST:", req.body);
+    const { user_id, course_id, flag } = req.body;
+
+    if (!user_id || !course_id) {
+        return res.status(400).json({ error: "Missing user_id or course_id" });
+    }
+
+    try {
+        if (flag === true) {
+            // Insert (ignore duplicates manually)
+            const { data: existing } = await supabase
+                .from("user_course_flags")
+                .select("*")
+                .match({ user_id, course_id });
+
+            if (!existing || existing.length === 0) {
+                const { error } = await supabase
+                    .from("user_course_flags")
+                    .insert([{ user_id, course_id }]);
+
+                if (error) return res.status(500).json({ error: error.message });
+            }
+
+            return res.json({ success: true });
+        }
+
+        // Unflag — delete
+        const { error } = await supabase
+            .from("user_course_flags")
+            .delete()
+            .match({ user_id, course_id });
+
+        if (error) return res.status(500).json({ error: error.message });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error("Flag error:", err);
+        res.status(500).json({ error: "Server error flagging course" });
+    }
+});
+
+// CHECK IF FLAGGED
+app.post("/api/golf/courses/isFlagged", async (req, res) => {
+    const { user_id, course_id } = req.body;
+
+    const { data, error } = await supabase
+        .from("user_course_flags")
+        .select("id")
+        .match({ user_id, course_id })
+        .maybeSingle();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({ flagged: !!data });
+});
+
+// GET ALL FLAGGED COURSE IDS
+app.get("/api/golf/courses/flagged/:userId", async (req, res) => {
+    const user_id = req.params.userId;
+
+    const { data, error } = await supabase
+        .from("user_course_flags")
+        .select("course_id")
+        .eq("user_id", user_id);
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({ flagged: data.map(row => row.course_id) });
+});
+
+
+
+// -----------------------------------------
+// ENRICH COURSE (fetch image from SerpAPI)
+// -----------------------------------------
+app.post("/api/golf/courses/enrich", async (req, res) => {
+    const { course } = req.body;
+    if (!course || !course.id) {
+        return res.status(400).json({ error: "Invalid course data" });
+    }
+
+    try {
+        // Try to pull image using SerpAPI
+        const query = `${course.name} golf course`;
+        let imageUrl = null;
+
+        try {
+            const serp = await fetch(
+                `https://serpapi.com/search.json?engine=google_images&q=${encodeURIComponent(query)}&api_key=${process.env.SERPAPI_KEY}`
+            );
+            const serpData = await serp.json();
+
+            const img = serpData.images_results?.[0];
+            if (img) imageUrl = img.original || img.thumbnail;
+        } catch (err) {
+            console.error("SerpAPI image fetch failed:", err);
+        }
+
+        // return original course + image URL (if found)
+        res.json({
+            ...course,
+            image_url: imageUrl || null
+        });
+
+    } catch (err) {
+        console.error("Course enrichment failed:", err);
+        res.status(500).json({ error: "Course enrichment failed" });
+    }
+});
+
 
 //server start
 app.listen(app.get('port'), () => {
