@@ -5,10 +5,6 @@ import CourseCard from '../Components/CourseCard'
 import TournamentPurseChart from '../Components/TournamentPurseChart'
 import PlayerComparison from '../Components/PlayerComparison'
 
-
-
-
-
 const MOCK_TOURNAMENTS = [
     { id: 1, name: 'The Masters', status: 'Finished' },
     { id: 2, name: 'PGA Championship', status: 'Upcoming' },

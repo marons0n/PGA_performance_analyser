@@ -259,15 +259,7 @@ app.get('/tournaments', async (req, res) => {
     }
 });
 
-// Enrich Tournament (Image)
-
-
-
-// -----------------------------
-// SUPABASE FLAG STORAGE (PERSISTENT)
-// -----------------------------
-
-// FLAG / UNFLAG A COURSE
+// flag/unflag
 app.post("/api/golf/courses/flag", async (req, res) => {
     console.log("FLAG REQUEST:", req.body);
     const { user_id, course_id, flag } = req.body;
@@ -311,7 +303,7 @@ app.post("/api/golf/courses/flag", async (req, res) => {
     }
 });
 
-// CHECK IF FLAGGED
+// Check if flagged
 app.post("/api/golf/courses/isFlagged", async (req, res) => {
     const { user_id, course_id } = req.body;
 
@@ -326,7 +318,7 @@ app.post("/api/golf/courses/isFlagged", async (req, res) => {
     res.json({ flagged: !!data });
 });
 
-// GET ALL FLAGGED COURSE IDS
+// Get all flagged courses for user  
 app.get("/api/golf/courses/flagged/:userId", async (req, res) => {
     const user_id = req.params.userId;
 
@@ -342,9 +334,6 @@ app.get("/api/golf/courses/flagged/:userId", async (req, res) => {
 
 
 
-// -----------------------------------------
-// ENRICH COURSE (fetch image from SerpAPI)
-// -----------------------------------------
 app.post("/api/golf/courses/enrich", async (req, res) => {
     const { course } = req.body;
     if (!course || !course.id) {
@@ -501,11 +490,6 @@ app.get('/players/:id/details', async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
-
-
-
-
-
 
 //server start
 app.listen(app.get('port'), () => {
